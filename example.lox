@@ -4,10 +4,6 @@ fun thrice(fn) {
     }
 }
 
-fun p(a) {
-    print a;
-}
-
 thrice(fun (a) {
     print a;
 });
