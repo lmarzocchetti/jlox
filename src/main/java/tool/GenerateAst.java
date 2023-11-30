@@ -18,24 +18,27 @@ public class GenerateAst {
         defineAst(outputDir, "Expr", Arrays.asList(
                 "Assign     : Token name, Expr value",
                 "Binary     : Expr left, Token operator, Expr right",
+                "Call       : Expr callee, Token paren, List<Expr> arguments",
                 "Grouping   : Expr expression",
                 "Literal    : Object value",
                 "Logical    : Expr left, Token operator, Expr right",
                 "Unary      : Token operator, Expr right",
                 "Variable   : Token name"
-        ));
+        ), false);
 
         defineAst(outputDir, "Stmt", Arrays.asList(
                 "Block      : List<Stmt> statements",
                 "Expression : Expr expression",
+                "Function   : Token name, List<Token> params, List<Stmt> body",
                 "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
                 "Print      : Expr expression",
+                "Return     : Token keyword, Expr value",
                 "Var        : Token name, Expr initializer",
                 "While      : Expr condition, Stmt body"
-        ));
+        ), true);
     }
 
-    private static void defineAst(String outputDir, String baseName, List<String> types) throws IOException {
+    private static void defineAst(String outputDir, String baseName, List<String> types, boolean allowBreak) throws IOException {
         String path = outputDir + "/" + baseName + ".java";
         PrintWriter writer = new PrintWriter(path, StandardCharsets.UTF_8);
 
@@ -53,9 +56,25 @@ public class GenerateAst {
         }
         // The base accept() method
         writer.println();
+
+        if (allowBreak) {
+            defineBreak(writer);
+        }
+
         writer.println("    abstract <R> R accept(Visitor<R> visitor);");
         writer.println("}");
         writer.close();
+    }
+
+    private static void defineBreak(PrintWriter writer) {
+        writer.println("    static class Break extends Stmt {\n" +
+                "        Break() {}\n" +
+                "\n" +
+                "        @Override\n" +
+                "        <R> R accept(Visitor<R> visitor) {\n" +
+                "            return null;\n" +
+                "        }\n" +
+                "    }");
     }
 
     private static void defineVisitor(PrintWriter writer, String baseName, List<String> types) {

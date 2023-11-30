@@ -1,8 +1,13 @@
-var a = 0;
-var temp;
-
-for (var b = 1; a < 10000; b = temp + b) {
-    print a;
-    temp = a;
-    a = b;
+fun thrice(fn) {
+    for (var i = 1; i <= 3; i = i + 1) {
+        fn(i);
+    }
 }
+
+fun p(a) {
+    print a;
+}
+
+thrice(fun (a) {
+    print a;
+});
