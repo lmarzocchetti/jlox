@@ -12,6 +12,7 @@ abstract class Expr {
     R visitLogicalExpr(Logical expr);
     R visitUnaryExpr(Unary expr);
     R visitVariableExpr(Variable expr);
+    R visitLambdaExpr(Lambda expr);
     }
     static class Assign extends Expr {
         Assign(Token name, Expr value) {
@@ -124,6 +125,22 @@ abstract class Expr {
     }
 
         final Token name;
+    }
+    static class Lambda extends Expr {
+        Lambda(Token name, List<Token> params, List<Stmt> body) {
+        this.name = name;
+        this.params = params;
+        this.body = body;
+        }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+        return visitor.visitLambdaExpr(this);
+    }
+
+        final Token name;
+        final List<Token> params;
+        final List<Stmt> body;
     }
 
     abstract <R> R accept(Visitor<R> visitor);

@@ -1,9 +1,19 @@
-fun thrice(fn) {
-    for (var i = 1; i <= 3; i = i + 1) {
-        fn(i);
-    }
+fun scope(a) {
+    var b = "local";
 }
 
-thrice(fun (a) {
-    print a;
+fun provaL(a, f) {
+    return f(a);
+}
+
+var a = "global";
+print a;
+scope(a);
+print a;
+
+// Lambda function
+var b = provaL(2, fun(a) {
+    return a * 2;
 });
+
+print b;

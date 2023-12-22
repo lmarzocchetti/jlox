@@ -1,13 +1,16 @@
 package lox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
     boolean hasBreak = false;
     final Environment globals = new Environment();
     private Environment environment = globals;
+    private final Map<Expr, Integer> locals = new HashMap<>();
 
     Interpreter() {
         globals.define("clock", new LoxCallable() {
@@ -42,7 +45,16 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
         Object value = evaluate(expr.value);
-        environment.assign(expr.name, value);
+//        environment.assign(expr.name, value);
+
+        Integer distance = locals.get(expr);
+
+        if (distance != null) {
+            environment.assignAt(distance, expr.name, value);
+        } else {
+            globals.assign(expr.name, value);
+        }
+
         return value;
     }
 
@@ -162,11 +174,32 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
     @Override
     public Object visitVariableExpr(Expr.Variable expr) {
         // return environment.get(expr.name);
-        Object val = environment.get(expr.name);
-        if (val == null) {
-            throw new RuntimeError(expr.name, "Cannot access a variable that is not assigned yet.");
+
+//        Object val = environment.get(expr.name);
+//        if (val == null) {
+//            throw new RuntimeError(expr.name, "Cannot access a variable that is not assigned yet.");
+//        }
+//        return val;
+
+        return lookUpVariable(expr.name, expr);
+    }
+
+    private Object lookUpVariable(Token name, Expr expr) {
+        Integer distance = locals.get(expr);
+        if (distance != null) {
+            return environment.getAt(distance, name.lexeme);
+        } else {
+            return globals.get(name);
         }
-        return val;
+    }
+
+    @Override
+    public Object visitLambdaExpr(Expr.Lambda expr) {
+        if (expr.params.isEmpty() && expr.body.isEmpty()) {
+            throw new RuntimeError(expr.name, "Lambda function with no arguments and empty body are not allowed.");
+        }
+        LoxFunction function = new LoxFunction(new Stmt.Function(expr.name, expr.params, expr.body), environment);
+        return function;
     }
 
     private void checkNumberOperand(Token operator, Object operand) {
@@ -228,6 +261,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
     private void execute(Stmt stmt) {
         stmt.accept(this);
+    }
+
+    void resolve(Expr expr, int depth) {
+        locals.put(expr, depth);
     }
 
     void executeBlock(List<Stmt> statements, Environment environment) {

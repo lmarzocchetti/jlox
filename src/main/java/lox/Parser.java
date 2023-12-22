@@ -333,13 +333,39 @@ public class Parser {
                 if (arguments.size() >= 255) {
                     error(peek(), "Can't have more than 255 arguments");
                 }
-                arguments.add(expression());
+                if (peek().type == TokenType.FUN) {
+                    arguments.add(lambda());
+                }
+                else {
+                    arguments.add(expression());
+                }
             } while (match(COMMA));
         }
 
         Token paren = consume(RIGHT_PAREN, "Expect ')' after arguments.");
 
         return new Expr.Call(callee, paren, arguments);
+    }
+
+    private Expr lambda() {
+        consume(FUN, "Expect fun keyword to create lambda function.");
+        consume(LEFT_PAREN, "Expect '(' after fun for lambda function.");
+
+        List<Token> parameters = new ArrayList<>();
+        if (!check(RIGHT_PAREN)) {
+            do {
+                if (parameters.size() >= 255) {
+                    error(peek(), "Can't have more than 255 parameters.");
+                }
+
+                parameters.add(consume(IDENTIFIER, "Expect parameter name."));
+            } while (match(COMMA));
+        }
+        consume(RIGHT_PAREN, "Expect ')' after parameters.");
+        consume(LEFT_BRACE, "Expect '{' before body.");
+        List<Stmt> body = block();
+        Token name = new Token(FUN, "lambda", null, previous().line);
+        return new Expr.Lambda(name, parameters, body);
     }
 
     private Expr call() {
