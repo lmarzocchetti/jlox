@@ -1,0 +1,13 @@
+class Dog {
+    init() {
+        this.x = 5;
+    }
+
+    bark() {
+        print "Woof!";
+    }
+}
+
+var dog = Dog();
+print dog.x;
+dog.bark();
