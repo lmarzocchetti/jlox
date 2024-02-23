@@ -20,6 +20,10 @@ class Dog < Animal {
     supBark() {
         super.bark();
     }
+
+    cavolo(f) {
+        print f(this.x);
+    }
 }
 
 var dog = Dog();
@@ -27,3 +31,7 @@ print dog.x;
 dog.bark();
 print dog.x;
 dog.supBark();
+
+dog.cavolo(fun (a) {
+    return a + 1;
+});
